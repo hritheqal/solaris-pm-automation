@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Solaris PM Multi-Server Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            color: #1f2933;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #d1d5db;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        a {
+            color: #2563eb;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .not-ok {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .na {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .missing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        @media (max-width: 900px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Solaris PM Multi-Server Dashboard</h1>
+            <p>Summary view for all analyzed Solaris / SPARC PM reports</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="card">
+                <div class="card-title">Total Servers</div>
+                <div class="card-value">1</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">OK Servers</div>
+                <div class="card-value">0</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Not OK Servers</div>
+                <div class="card-value">1</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Hostname</th>
+                    <th>Serial Number</th>
+                    <th>Model</th>
+                    <th>OS Information</th>
+                    <th>Overall Status</th>
+                    <th>Failed Count</th>
+                    <th>Failed Checks</th>
+                    <th>Dashboard</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td>DEMO-SERVER01</td>
+            <td>DEMO123456</td>
+            <td>SPARC T4-2</td>
+            <td>Oracle Solaris 11.4.93.221.2</td>
+            <td><span class="badge not-ok">Not OK</span></td>
+            <td>1</td>
+            <td>System Status from Syslog</td>
+            <td><a href="sample_solaris_pm_report_dashboard.html">Open Dashboard</a></td>
+        </tr>
+        
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
