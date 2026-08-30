@@ -1181,6 +1181,238 @@ def generate_html_dashboard(row, findings):
 
 
 # ============================================================
+# Multi-server HTML index dashboard
+# ============================================================
+
+def generate_index_dashboard(rows):
+    total_servers = len(rows)
+    ok_count = sum(1 for row in rows if row.get("Overall Status") == "OK")
+    not_ok_count = sum(1 for row in rows if row.get("Overall Status") == "Not OK")
+
+    table_rows = ""
+
+    for row in rows:
+        filename = row.get("File", "")
+        dashboard_file = f"{Path(filename).stem}_dashboard.html"
+
+        hostname = html.escape(row.get("Hostname", "Not captured"))
+        serial = html.escape(row.get("Serial Number", "Not captured"))
+        model = html.escape(row.get("Model", "Not captured"))
+        os_info = html.escape(row.get("OS Information", "Not captured"))
+        overall_status = row.get("Overall Status", "Not captured")
+        failed_count = html.escape(str(row.get("Failed Check Count", "0")))
+        failed_checks = html.escape(row.get("Failed Checks", "") or "None")
+
+        table_rows += f"""
+        <tr>
+            <td>{hostname}</td>
+            <td>{serial}</td>
+            <td>{model}</td>
+            <td>{os_info}</td>
+            <td>{status_badge(overall_status)}</td>
+            <td>{failed_count}</td>
+            <td>{failed_checks}</td>
+            <td><a href="{html.escape(dashboard_file)}">Open Dashboard</a></td>
+        </tr>
+        """
+
+    dashboard = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Solaris PM Multi-Server Dashboard</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            color: #1f2933;
+        }}
+
+        .container {{
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }}
+
+        .header {{
+            background: #111827;
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }}
+
+        .header h1 {{
+            margin: 0;
+            font-size: 28px;
+        }}
+
+        .header p {{
+            margin: 8px 0 0;
+            color: #d1d5db;
+        }}
+
+        .summary-grid {{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }}
+
+        .card {{
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+
+        .card-title {{
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }}
+
+        .card-value {{
+            font-size: 28px;
+            font-weight: bold;
+        }}
+
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+
+        th, td {{
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            vertical-align: top;
+        }}
+
+        th {{
+            background: #f9fafb;
+            color: #374151;
+        }}
+
+        a {{
+            color: #2563eb;
+            font-weight: bold;
+            text-decoration: none;
+        }}
+
+        a:hover {{
+            text-decoration: underline;
+        }}
+
+        .badge {{
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: bold;
+        }}
+
+        .ok {{
+            background: #dcfce7;
+            color: #166534;
+        }}
+
+        .not-ok {{
+            background: #fee2e2;
+            color: #991b1b;
+        }}
+
+        .na {{
+            background: #e0f2fe;
+            color: #075985;
+        }}
+
+        .missing {{
+            background: #fef3c7;
+            color: #92400e;
+        }}
+
+        @media (max-width: 900px) {{
+            .summary-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            table {{
+                font-size: 13px;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Solaris PM Multi-Server Dashboard</h1>
+            <p>Summary view for all analyzed Solaris / SPARC PM reports</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="card">
+                <div class="card-title">Total Servers</div>
+                <div class="card-value">{total_servers}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">OK Servers</div>
+                <div class="card-value">{ok_count}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Not OK Servers</div>
+                <div class="card-value">{not_ok_count}</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Hostname</th>
+                    <th>Serial Number</th>
+                    <th>Model</th>
+                    <th>OS Information</th>
+                    <th>Overall Status</th>
+                    <th>Failed Count</th>
+                    <th>Failed Checks</th>
+                    <th>Dashboard</th>
+                </tr>
+            </thead>
+            <tbody>
+                {table_rows}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+"""
+
+    return dashboard
+
+
+def write_index_dashboard(rows):
+    if not rows:
+        return
+
+    output_dir = Path("outputs")
+    output_dir.mkdir(exist_ok=True)
+
+    index_path = output_dir / "index.html"
+    dashboard = generate_index_dashboard(rows)
+
+    index_path.write_text(dashboard, encoding="utf-8")
+
+    print(f"Saved multi-server dashboard to: {index_path}")
+
+# ============================================================
 # CSV summary
 # ============================================================
 
@@ -1272,7 +1504,7 @@ def main():
         sys.exit(1)
 
     write_summary_csv(summary_rows)
-
+    write_index_dashboard(summary_rows)
 
 if __name__ == "__main__":
     main()
