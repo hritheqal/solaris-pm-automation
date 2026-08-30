@@ -1,0 +1,8 @@
+[
+  {
+    "section": "System Status from Syslog",
+    "status": "Not OK",
+    "line": null,
+    "evidence": "Aug 28 10:00:00 DEMO-SERVER01 SC Alert: [ID 455138 daemon.error] Storage | major: Disk reported unexpected SCSI SENSE data to controller, sun-id=/SYS/SASBP/HDD0"
+  }
+]

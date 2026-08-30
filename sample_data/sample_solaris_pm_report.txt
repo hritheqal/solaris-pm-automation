@@ -1,0 +1,123 @@
+Solaris / SPARC Preventive Maintenance Report
+Generated : Fri Aug 28 10:00:00 MYT 2026
+Hostname  : DEMO-SERVER01
+
+=====================================================================
+
+Section : Hostname
+Command : hostname
+Output  :
+DEMO-SERVER01
+
+---------------------------------------------------------------------
+
+Section : Model
+Command : check_model
+Output  :
+SPARC T4-2
+
+---------------------------------------------------------------------
+
+Section : Date
+Command : date '+%d %b %Y'
+Output  :
+28 Aug 2026
+
+---------------------------------------------------------------------
+
+Section : Uptime
+Command : check_uptime
+Output  :
+12 day(s)
+
+---------------------------------------------------------------------
+
+Section : Serial Number
+Command : check_serial
+Output  :
+DEMO123456
+
+---------------------------------------------------------------------
+
+Section : Firmware Version
+Command : check_firmware
+Output  :
+ILOM v8.9.11
+
+---------------------------------------------------------------------
+
+Section : OS Information
+Command : check_os_info
+Output  :
+Oracle Solaris 11.4.93.221.2
+
+---------------------------------------------------------------------
+
+Section : Disk Management
+Command : zpool status -xv
+Output  :
+all pools are healthy
+
+---------------------------------------------------------------------
+
+Section : Filesystem Status
+Command : df -h usage check, threshold >= 80%
+Output  :
+All Healthy
+
+---------------------------------------------------------------------
+
+Section : System status from syslog
+Command : dmesg | egrep -i 'warn|fatal|error|crit'
+Output  :
+Aug 28 10:00:00 DEMO-SERVER01 SC Alert: [ID 455138 daemon.error] Storage | major: Disk reported unexpected SCSI SENSE data to controller, sun-id=/SYS/SASBP/HDD0
+
+---------------------------------------------------------------------
+
+Section : FMA (Hardware Status)
+Command : fmadm faulty
+Output  :
+Healthy
+
+---------------------------------------------------------------------
+
+Section : Services
+Command : svcs -xv
+Output  :
+Healthy
+
+---------------------------------------------------------------------
+
+Section : Hardware diagnostic
+Command : prtdiag -v
+Output  :
+System Configuration: Oracle Corporation sun4v SPARC T4-2
+
+---------------------------------------------------------------------
+
+Section : Hard disk device statistics
+Command : iostat -En error check
+Output  :
+All OK
+
+---------------------------------------------------------------------
+
+Section : HBA Port Link Status
+Command : luxadm -e port
+Output  :
+All OK
+
+---------------------------------------------------------------------
+
+Section : Enclosure/Disk Status
+Command : luxadm probe/display
+Output  :
+All OK
+
+---------------------------------------------------------------------
+
+Section : Virtualization Check
+Command : ldm list and zoneadm list -cv
+Output  :
+NAME             STATE      FLAGS   CONS    VCPU  MEMORY   UTIL  NORM  UPTIME
+primary          active     -n-cv-   UART    16    32G      0.1%  0.1%  12d
