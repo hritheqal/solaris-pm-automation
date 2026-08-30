@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Real Solaris PM input/output files
+inputs/*.txt
+inputs/*.csv
+outputs/
+
+# Test folders
+inputs_test/
+
+# Logs and compressed explorer files
+*.log
+*.out
+*.tar
+*.tar.gz
+*.zip
+
+# Environment files
+.env
+# Local backups
+backups/
