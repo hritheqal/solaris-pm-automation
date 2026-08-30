@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+import html
 import json
 import re
 import sys
@@ -671,90 +672,45 @@ def generate_findings(text):
 
     disk_output = get_section_output(sections, ["Disk Management"])
     if detect_disk_management_status(text, sections) == "Not OK":
-        add_section_finding(
-            findings,
-            "Disk Management Status",
-            "Not OK",
-            disk_output,
-        )
+        add_section_finding(findings, "Disk Management Status", "Not OK", disk_output)
 
     syslog_output = get_section_output(sections, ["System status from syslog", "System Status from Syslog"])
     if detect_syslog_status(sections) == "Not OK":
         for line in syslog_output.splitlines():
             clean_line = line.strip()
             if clean_line:
-                add_section_finding(
-                    findings,
-                    "System Status from Syslog",
-                    "Not OK",
-                    clean_line,
-                )
+                add_section_finding(findings, "System Status from Syslog", "Not OK", clean_line)
 
     filesystem_output = get_section_output(sections, ["Filesystem Status", "File System Status"])
     if detect_filesystem_status(sections) == "Not OK":
         for line in filesystem_output.splitlines():
             clean_line = line.strip()
             if clean_line:
-                add_section_finding(
-                    findings,
-                    "Filesystem Status",
-                    "Not OK",
-                    clean_line,
-                )
+                add_section_finding(findings, "Filesystem Status", "Not OK", clean_line)
 
     fma_output = get_section_output(sections, ["FMA Hardware Status", "FMA (Hardware Status)"])
     if detect_fma_status(sections) == "Not OK":
-        add_section_finding(
-            findings,
-            "FMA Hardware Status",
-            "Not OK",
-            fma_output,
-        )
+        add_section_finding(findings, "FMA Hardware Status", "Not OK", fma_output)
 
     services_output = get_section_output(sections, ["Services"])
     if detect_services_status(sections) == "Not OK":
-        add_section_finding(
-            findings,
-            "Services",
-            "Not OK",
-            services_output,
-        )
+        add_section_finding(findings, "Services", "Not OK", services_output)
 
     hardware_output = get_section_output(sections, ["Hardware Diagnostic", "Hardware diagnostic"])
     if detect_hardware_diagnostic_status(text, sections) == "Not OK":
-        add_section_finding(
-            findings,
-            "Hardware Diagnostic",
-            "Not OK",
-            hardware_output,
-        )
+        add_section_finding(findings, "Hardware Diagnostic", "Not OK", hardware_output)
 
     hard_disk_output = get_section_output(sections, ["Hard disk device statistics", "Hard Disk Device Statistics"])
     if detect_hard_disk_status(sections) == "Not OK":
-        add_section_finding(
-            findings,
-            "Hard Disk Device Statistics",
-            "Not OK",
-            hard_disk_output,
-        )
+        add_section_finding(findings, "Hard Disk Device Statistics", "Not OK", hard_disk_output)
 
     hba_output = get_section_output(sections, ["HBA Port Link Status"])
     if detect_hba_status(sections) == "Not OK":
-        add_section_finding(
-            findings,
-            "HBA Port Link Status",
-            "Not OK",
-            hba_output,
-        )
+        add_section_finding(findings, "HBA Port Link Status", "Not OK", hba_output)
 
     enclosure_output = get_section_output(sections, ["Enclosure/Disk Status", "Enclosure Disk Status"])
     if detect_enclosure_status(sections) == "Not OK":
-        add_section_finding(
-            findings,
-            "Enclosure/Disk Status",
-            "Not OK",
-            enclosure_output,
-        )
+        add_section_finding(findings, "Enclosure/Disk Status", "Not OK", enclosure_output)
 
     return findings
 
@@ -923,6 +879,308 @@ def generate_explanation_report(row, findings):
 
 
 # ============================================================
+# HTML dashboard report
+# ============================================================
+
+def status_badge(status):
+    safe_status = html.escape(str(status))
+
+    if status == "OK":
+        return f'<span class="badge ok">{safe_status}</span>'
+
+    if status == "Not OK":
+        return f'<span class="badge not-ok">{safe_status}</span>'
+
+    if status == "Not Applicable":
+        return f'<span class="badge na">{safe_status}</span>'
+
+    if status == "Not captured":
+        return f'<span class="badge missing">{safe_status}</span>'
+
+    return f'<span class="badge missing">{safe_status}</span>'
+
+
+def generate_html_dashboard(row, findings):
+    hostname = html.escape(row.get("Hostname", "Not captured"))
+    serial = html.escape(row.get("Serial Number", "Not captured"))
+    model = html.escape(row.get("Model", "Not captured"))
+    os_info = html.escape(row.get("OS Information", "Not captured"))
+    firmware = html.escape(row.get("Firmware Version", "Not captured"))
+    overall_status = row.get("Overall Status", "Not captured")
+    failed_checks = html.escape(row.get("Failed Checks", "") or "None")
+
+    health_checks = [
+        "Disk Management Status",
+        "System Status from Syslog",
+        "Filesystem Status",
+        "FMA Hardware Status",
+        "Services",
+        "Hardware Diagnostic",
+        "Hard Disk Device Statistics",
+        "HBA Port Link Status",
+        "Enclosure/Disk Status",
+        "Virtualization Check",
+        "VM Health Check",
+    ]
+
+    check_rows = ""
+
+    for check in health_checks:
+        value = row.get(check, "Not captured")
+        check_rows += f"""
+        <tr>
+            <td>{html.escape(check)}</td>
+            <td>{status_badge(value)}</td>
+        </tr>
+        """
+
+    if findings:
+        findings_html = ""
+
+        for index, finding in enumerate(findings, start=1):
+            section = html.escape(finding.get("section", "Unknown"))
+            status = finding.get("status", "Unknown")
+            evidence = html.escape(finding.get("evidence", ""))
+
+            findings_html += f"""
+            <div class="finding-card">
+                <h3>Finding {index}: {section}</h3>
+                <p><strong>Status:</strong> {status_badge(status)}</p>
+                <p><strong>Evidence:</strong></p>
+                <pre>{evidence}</pre>
+            </div>
+            """
+    else:
+        findings_html = """
+        <div class="finding-card">
+            <h3>No Not OK Findings</h3>
+            <p>No abnormal findings were detected from the PM report.</p>
+        </div>
+        """
+
+    dashboard = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Solaris PM Dashboard - {hostname}</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            color: #1f2933;
+        }}
+
+        .container {{
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }}
+
+        .header {{
+            background: #111827;
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }}
+
+        .header h1 {{
+            margin: 0;
+            font-size: 28px;
+        }}
+
+        .header p {{
+            margin: 8px 0 0;
+            color: #d1d5db;
+        }}
+
+        .summary-grid {{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }}
+
+        .card {{
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+
+        .card-title {{
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }}
+
+        .card-value {{
+            font-size: 18px;
+            font-weight: bold;
+            word-break: break-word;
+        }}
+
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }}
+
+        th, td {{
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }}
+
+        th {{
+            background: #f9fafb;
+            color: #374151;
+        }}
+
+        .badge {{
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: bold;
+        }}
+
+        .ok {{
+            background: #dcfce7;
+            color: #166534;
+        }}
+
+        .not-ok {{
+            background: #fee2e2;
+            color: #991b1b;
+        }}
+
+        .na {{
+            background: #e0f2fe;
+            color: #075985;
+        }}
+
+        .missing {{
+            background: #fef3c7;
+            color: #92400e;
+        }}
+
+        .finding-card {{
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }}
+
+        .finding-card h3 {{
+            margin-top: 0;
+        }}
+
+        pre {{
+            background: #111827;
+            color: #f9fafb;
+            padding: 14px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }}
+
+        .section-title {{
+            margin-top: 30px;
+            margin-bottom: 12px;
+        }}
+
+        @media (max-width: 800px) {{
+            .summary-grid {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Solaris PM Dashboard</h1>
+            <p>Preventive Maintenance Analysis Report</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="card">
+                <div class="card-title">Hostname</div>
+                <div class="card-value">{hostname}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Serial Number</div>
+                <div class="card-value">{serial}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Model</div>
+                <div class="card-value">{model}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Overall Status</div>
+                <div class="card-value">{status_badge(overall_status)}</div>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="card">
+                <div class="card-title">OS Information</div>
+                <div class="card-value">{os_info}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Firmware Version</div>
+                <div class="card-value">{firmware}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Failed Checks</div>
+                <div class="card-value">{failed_checks}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Finding Count</div>
+                <div class="card-value">{len(findings)}</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Health Checklist</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Check Item</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {check_rows}
+            </tbody>
+        </table>
+
+        <h2 class="section-title">Findings Evidence</h2>
+
+        {findings_html}
+    </div>
+</body>
+</html>
+"""
+
+    return dashboard
+
+
+# ============================================================
 # CSV summary
 # ============================================================
 
@@ -955,6 +1213,7 @@ def process_file(input_file):
     checklist = generate_checklist(row)
     findings = generate_findings(text)
     explanation = generate_explanation_report(row, findings)
+    dashboard = generate_html_dashboard(row, findings)
 
     output_dir = Path("outputs")
     output_dir.mkdir(exist_ok=True)
@@ -964,15 +1223,18 @@ def process_file(input_file):
     checklist_path = output_dir / f"{input_name}_checklist.md"
     findings_path = output_dir / f"{input_name}_findings.json"
     explanation_path = output_dir / f"{input_name}_explanation.md"
+    dashboard_path = output_dir / f"{input_name}_dashboard.html"
 
     checklist_path.write_text(checklist, encoding="utf-8")
     findings_path.write_text(json.dumps(findings, indent=2), encoding="utf-8")
     explanation_path.write_text(explanation, encoding="utf-8")
+    dashboard_path.write_text(dashboard, encoding="utf-8")
 
     print(f"Processed: {input_file}")
     print(f"Saved checklist to: {checklist_path}")
     print(f"Saved findings to: {findings_path}")
     print(f"Saved explanation to: {explanation_path}")
+    print(f"Saved dashboard to: {dashboard_path}")
     print()
 
     return row
