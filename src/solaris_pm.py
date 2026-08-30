@@ -8,6 +8,10 @@ import sys
 FILESYSTEM_THRESHOLD = 80
 
 
+# ============================================================
+# Basic file helpers
+# ============================================================
+
 def read_file(path):
     return Path(path).read_text(errors="ignore")
 
@@ -50,6 +54,10 @@ def clean_section_output(output):
 
     return "\n".join(cleaned_lines)
 
+
+# ============================================================
+# Section parser
+# ============================================================
 
 def extract_sections(text):
     sections = {}
@@ -94,6 +102,10 @@ def get_section_output(sections, possible_names):
 
     return ""
 
+
+# ============================================================
+# Inventory fields
+# ============================================================
 
 def get_hostname(sections):
     output = get_section_output(sections, ["Hostname"])
@@ -201,6 +213,10 @@ def detect_os(text, sections):
     return "Not captured"
 
 
+# ============================================================
+# Health checks
+# ============================================================
+
 def detect_disk_management_status(text, sections):
     output = get_section_output(sections, ["Disk Management"])
 
@@ -219,7 +235,7 @@ def detect_disk_management_status(text, sections):
         if "online" in lower_output:
             return "OK"
 
-        return "Review"
+        return "Not captured"
 
     if re.search(r"errors:\s+No known data errors", text, re.IGNORECASE):
         return "OK"
@@ -242,7 +258,6 @@ def detect_filesystem_status(sections):
         return "OK"
 
     percentages = re.findall(r"\((\d+)%\)|\b(\d+)%", output)
-
     found_percentage = False
 
     for pair in percentages:
@@ -261,7 +276,7 @@ def detect_filesystem_status(sections):
         return "OK"
 
     if "needs cleaning" in lower_output:
-        return "Review"
+        return "Not OK"
 
     return "OK"
 
@@ -353,7 +368,7 @@ def detect_hardware_diagnostic_status(text, sections):
         if "system configuration:" in lower_output:
             return "OK"
 
-        return "Review"
+        return "Not captured"
 
     if re.search(r"System Configuration:", text, re.IGNORECASE):
         return "OK"
@@ -391,7 +406,7 @@ def detect_hard_disk_status(sections):
     if hard_error or media_error or pfa_error:
         return "OK"
 
-    return "Review"
+    return "Not captured"
 
 
 def detect_hba_status(sections):
@@ -408,10 +423,13 @@ def detect_hba_status(sections):
     if lower_output.startswith("all ok") or lower_output.startswith("ok") or lower_output.startswith("healthy"):
         return "OK"
 
-    if "no hba" in lower_output or "not applicable" in lower_output:
+    if "not applicable" in lower_output:
         return "Not Applicable"
 
-    return "Review"
+    if "no hba" in lower_output:
+        return "Not Applicable"
+
+    return "Not captured"
 
 
 def detect_enclosure_status(sections):
@@ -431,7 +449,7 @@ def detect_enclosure_status(sections):
     if "not applicable" in lower_output:
         return "Not Applicable"
 
-    return "Review"
+    return "Not captured"
 
 
 def detect_virtualization_status(text, sections):
@@ -498,6 +516,10 @@ def detect_vm_health_status(
     return "OK"
 
 
+# ============================================================
+# Overall status
+# ============================================================
+
 def calculate_overall_status(row):
     check_columns = [
         "Disk Management Status",
@@ -513,7 +535,6 @@ def calculate_overall_status(row):
     ]
 
     failed_checks = []
-    review_checks = []
 
     for column in check_columns:
         status = row.get(column)
@@ -521,17 +542,15 @@ def calculate_overall_status(row):
         if status == "Not OK":
             failed_checks.append(column)
 
-        if status in ["Review", "Not captured"]:
-            review_checks.append(column)
-
     if failed_checks:
         return "Not OK", len(failed_checks), "; ".join(failed_checks)
 
-    if review_checks:
-        return "Review", 0, "; ".join(review_checks)
-
     return "OK", 0, ""
 
+
+# ============================================================
+# Main row extraction
+# ============================================================
 
 def extract_statuses(text, input_file):
     sections = extract_sections(text)
@@ -596,6 +615,10 @@ def extract_statuses(text, input_file):
     return row
 
 
+# ============================================================
+# Markdown checklist
+# ============================================================
+
 def generate_checklist(row):
     report = f"""
 # Solaris PM Checklist
@@ -625,6 +648,10 @@ def generate_checklist(row):
 
     return report.strip()
 
+
+# ============================================================
+# Findings JSON
+# ============================================================
 
 def add_section_finding(findings, section, status, evidence):
     finding = {
@@ -664,14 +691,10 @@ def generate_findings(text):
                 )
 
     filesystem_output = get_section_output(sections, ["Filesystem Status", "File System Status"])
-    for line in filesystem_output.splitlines():
-        clean_line = line.strip()
-        percent_matches = re.findall(r"\((\d+)%\)|\b(\d+)%", clean_line)
-
-        for pair in percent_matches:
-            percent_text = pair[0] or pair[1]
-
-            if percent_text and int(percent_text) >= FILESYSTEM_THRESHOLD:
+    if detect_filesystem_status(sections) == "Not OK":
+        for line in filesystem_output.splitlines():
+            clean_line = line.strip()
+            if clean_line:
                 add_section_finding(
                     findings,
                     "Filesystem Status",
@@ -736,6 +759,173 @@ def generate_findings(text):
     return findings
 
 
+# ============================================================
+# Human-readable explanation report
+# ============================================================
+
+def generate_explanation_report(row, findings):
+    hostname = row.get("Hostname", "Not captured")
+    serial = row.get("Serial Number", "Not captured")
+    model = row.get("Model", "Not captured")
+    overall_status = row.get("Overall Status", "Not captured")
+    failed_checks = row.get("Failed Checks", "")
+
+    report_lines = []
+
+    report_lines.append("# Solaris PM Finding Explanation")
+    report_lines.append("")
+    report_lines.append("## Server Summary")
+    report_lines.append("")
+    report_lines.append("| Item | Value |")
+    report_lines.append("|---|---|")
+    report_lines.append(f"| Hostname | {hostname} |")
+    report_lines.append(f"| Serial Number | {serial} |")
+    report_lines.append(f"| Model | {model} |")
+    report_lines.append(f"| Overall Status | {overall_status} |")
+    report_lines.append(f"| Failed Checks | {failed_checks if failed_checks else 'None'} |")
+    report_lines.append("")
+
+    if not findings:
+        report_lines.append("## Findings")
+        report_lines.append("")
+        report_lines.append("No Not OK findings were detected from the PM report.")
+        return "\n".join(report_lines)
+
+    report_lines.append("## Findings")
+    report_lines.append("")
+
+    for index, finding in enumerate(findings, start=1):
+        section = finding.get("section", "Unknown")
+        status = finding.get("status", "Unknown")
+        evidence = finding.get("evidence", "")
+        lower_evidence = evidence.lower()
+
+        possible_meaning = (
+            "The PM analyzer detected this section as abnormal based on the collected command output."
+        )
+        recommended_action = (
+            "Review the raw PM output and verify the condition manually."
+        )
+
+        if section == "System Status from Syslog":
+            if "unexpected scsi sense data" in lower_evidence:
+                possible_meaning = (
+                    "The server reported unexpected SCSI SENSE data. "
+                    "This may indicate a disk, disk firmware, controller firmware, "
+                    "or compatibility-related storage warning."
+                )
+                recommended_action = (
+                    "Check the affected disk or FRU mentioned in the log, verify iostat -En, "
+                    "fmadm faulty, disk firmware, controller firmware, and monitor whether the warning repeats."
+                )
+
+            elif "kern.warning" in lower_evidence or "warning" in lower_evidence:
+                possible_meaning = (
+                    "The system log contains kernel warning messages. "
+                    "This may indicate hardware, driver, storage, or OS-level warnings."
+                )
+                recommended_action = (
+                    "Review the full dmesg/syslog context, identify the affected device, "
+                    "and compare with fmadm faulty and iostat -En output."
+                )
+
+            elif "daemon.error" in lower_evidence or "error" in lower_evidence:
+                possible_meaning = (
+                    "The system log contains error messages. "
+                    "This may indicate a service, hardware, or device-related issue."
+                )
+                recommended_action = (
+                    "Review the exact error source and confirm whether it is current, repeated, or historical."
+                )
+
+        elif section == "Hard Disk Device Statistics":
+            possible_meaning = (
+                "Disk statistics reported a possible disk-level issue, such as hard errors, "
+                "media errors, or predictive failure indicators."
+            )
+            recommended_action = (
+                "Check iostat -En for the affected disk, confirm whether errors are increasing, "
+                "check fmadm faulty, and prepare disk replacement if errors are persistent."
+            )
+
+        elif section == "HBA Port Link Status":
+            if "not connected" in lower_evidence:
+                possible_meaning = (
+                    "One or more Fibre Channel HBA ports are not connected. "
+                    "This can be normal if the server is not using SAN, but it is abnormal if SAN connectivity is expected."
+                )
+                recommended_action = (
+                    "Confirm whether the server is supposed to use SAN. "
+                    "If yes, check FC cable, SFP, switch port, zoning, and storage path status."
+                )
+            else:
+                possible_meaning = "The HBA port check reported an abnormal status."
+                recommended_action = (
+                    "Check luxadm -e port, FC cabling, switch login status, zoning, and storage visibility."
+                )
+
+        elif section == "Disk Management Status":
+            possible_meaning = "ZFS pool status reported an abnormal disk or pool condition."
+            recommended_action = (
+                "Run zpool status -xv, check affected vdev or disk, and verify whether the pool is degraded or faulted."
+            )
+
+        elif section == "Filesystem Status":
+            possible_meaning = "One or more filesystems exceeded the configured usage threshold."
+            recommended_action = (
+                "Check df -h, identify large files or old logs, and clean up safely based on customer approval."
+            )
+
+        elif section == "FMA Hardware Status":
+            possible_meaning = "Solaris Fault Management Architecture reported an active hardware fault."
+            recommended_action = (
+                "Run fmadm faulty, collect the fault UUID, identify the FRU, and raise hardware support ticket if required."
+            )
+
+        elif section == "Services":
+            possible_meaning = "One or more Solaris services are not in a healthy state."
+            recommended_action = (
+                "Run svcs -xv, identify the affected service, review logs, and restart only after customer approval."
+            )
+
+        elif section == "Hardware Diagnostic":
+            possible_meaning = "Hardware diagnostic output reported an issue or could not complete properly."
+            recommended_action = (
+                "Review prtdiag -v output and compare with FMA and ILOM hardware status."
+            )
+
+        elif section == "Enclosure/Disk Status":
+            possible_meaning = "Disk enclosure or disk path status reported an abnormal condition."
+            recommended_action = (
+                "Check luxadm display/probe output, disk LEDs, enclosure status, and storage path health."
+            )
+
+        report_lines.append(f"### Finding {index}: {section}")
+        report_lines.append("")
+        report_lines.append(f"**Status:** {status}")
+        report_lines.append("")
+        report_lines.append("**Evidence:**")
+        report_lines.append("")
+        report_lines.append("```text")
+        report_lines.append(evidence)
+        report_lines.append("```")
+        report_lines.append("")
+        report_lines.append("**Possible Meaning:**")
+        report_lines.append("")
+        report_lines.append(possible_meaning)
+        report_lines.append("")
+        report_lines.append("**Recommended Action:**")
+        report_lines.append("")
+        report_lines.append(recommended_action)
+        report_lines.append("")
+
+    return "\n".join(report_lines)
+
+
+# ============================================================
+# CSV summary
+# ============================================================
+
 def write_summary_csv(rows):
     if not rows:
         return
@@ -754,12 +944,17 @@ def write_summary_csv(rows):
     print(f"Saved summary to: {summary_path}")
 
 
+# ============================================================
+# File processing
+# ============================================================
+
 def process_file(input_file):
     text = read_file(input_file)
 
     row = extract_statuses(text, input_file)
     checklist = generate_checklist(row)
     findings = generate_findings(text)
+    explanation = generate_explanation_report(row, findings)
 
     output_dir = Path("outputs")
     output_dir.mkdir(exist_ok=True)
@@ -768,17 +963,24 @@ def process_file(input_file):
 
     checklist_path = output_dir / f"{input_name}_checklist.md"
     findings_path = output_dir / f"{input_name}_findings.json"
+    explanation_path = output_dir / f"{input_name}_explanation.md"
 
     checklist_path.write_text(checklist, encoding="utf-8")
     findings_path.write_text(json.dumps(findings, indent=2), encoding="utf-8")
+    explanation_path.write_text(explanation, encoding="utf-8")
 
     print(f"Processed: {input_file}")
     print(f"Saved checklist to: {checklist_path}")
     print(f"Saved findings to: {findings_path}")
+    print(f"Saved explanation to: {explanation_path}")
     print()
 
     return row
 
+
+# ============================================================
+# Main
+# ============================================================
 
 def main():
     if len(sys.argv) < 2:
