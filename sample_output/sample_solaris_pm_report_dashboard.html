@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Solaris PM Dashboard - DEMO-SERVER01</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            color: #1f2933;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #d1d5db;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 18px;
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .not-ok {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .na {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .missing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .finding-card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+
+        .finding-card h3 {
+            margin-top: 0;
+        }
+
+        pre {
+            background: #111827;
+            color: #f9fafb;
+            padding: 14px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .section-title {
+            margin-top: 30px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 800px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Solaris PM Dashboard</h1>
+            <p>Preventive Maintenance Analysis Report</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="card">
+                <div class="card-title">Hostname</div>
+                <div class="card-value">DEMO-SERVER01</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Serial Number</div>
+                <div class="card-value">DEMO123456</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Model</div>
+                <div class="card-value">SPARC T4-2</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Overall Status</div>
+                <div class="card-value"><span class="badge not-ok">Not OK</span></div>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="card">
+                <div class="card-title">OS Information</div>
+                <div class="card-value">Oracle Solaris 11.4.93.221.2</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Firmware Version</div>
+                <div class="card-value">ILOM v8.9.11</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Failed Checks</div>
+                <div class="card-value">System Status from Syslog</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Finding Count</div>
+                <div class="card-value">1</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Health Checklist</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Check Item</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td>Disk Management Status</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>System Status from Syslog</td>
+            <td><span class="badge not-ok">Not OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>Filesystem Status</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>FMA Hardware Status</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>Services</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>Hardware Diagnostic</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>Hard Disk Device Statistics</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>HBA Port Link Status</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>Enclosure/Disk Status</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+        <tr>
+            <td>Virtualization Check</td>
+            <td><span class="badge missing">LDOM</span></td>
+        </tr>
+        
+        <tr>
+            <td>VM Health Check</td>
+            <td><span class="badge ok">OK</span></td>
+        </tr>
+        
+            </tbody>
+        </table>
+
+        <h2 class="section-title">Findings Evidence</h2>
+
+        
+            <div class="finding-card">
+                <h3>Finding 1: System Status from Syslog</h3>
+                <p><strong>Status:</strong> <span class="badge not-ok">Not OK</span></p>
+                <p><strong>Evidence:</strong></p>
+                <pre>Aug 28 10:00:00 DEMO-SERVER01 SC Alert: [ID 455138 daemon.error] Storage | major: Disk reported unexpected SCSI SENSE data to controller, sun-id=/SYS/SASBP/HDD0</pre>
+            </div>
+            
+    </div>
+</body>
+</html>
