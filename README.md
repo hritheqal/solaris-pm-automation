@@ -2,7 +2,7 @@
 
 A Python-based automation tool for analyzing Solaris / SPARC Preventive Maintenance (PM) reports.
 
-This project uses a Bash collector script to collect read-only Solaris PM command outputs, then analyzes the generated TXT report using Python. The analyzer produces a clean Markdown checklist, JSON findings evidence, human-readable explanation report, HTML dashboard, and CSV summary.
+This project uses a Bash collector script to collect read-only Solaris PM command outputs, then analyzes the generated TXT report using Python. The analyzer produces a clean Markdown checklist, JSON findings evidence, human-readable explanation report, per-server HTML dashboard, multi-server HTML index dashboard, and CSV summary.
 
 ## Project Purpose
 
@@ -15,7 +15,8 @@ Instead of manually checking long command outputs one by one, this tool helps ge
 - Failed checks
 - Evidence from raw command output
 - Human-readable explanation
-- Browser-based HTML dashboard
+- Per-server HTML dashboard
+- Multi-server HTML index dashboard
 - Summary CSV for multiple servers
 
 ## Features
@@ -25,7 +26,8 @@ Instead of manually checking long command outputs one by one, this tool helps ge
 - Generates Markdown checklist per server
 - Generates JSON findings with evidence
 - Generates human-readable explanation report
-- Generates HTML dashboard report for browser-based PM review
+- Generates per-server HTML dashboard report for browser-based PM review
+- Generates multi-server HTML index dashboard for all analyzed reports
 - Generates summary CSV for single or multiple servers
 - Supports one-file or folder-based analysis
 - Uses safe sample input and output for portfolio demonstration
@@ -69,6 +71,7 @@ solaris-pm-automation/
 ├── sample_data/
 │   └── sample_solaris_pm_report.txt
 ├── sample_output/
+│   ├── index.html
 │   ├── sample_solaris_pm_report_checklist.md
 │   ├── sample_solaris_pm_report_findings.json
 │   ├── sample_solaris_pm_report_explanation.md
@@ -126,6 +129,12 @@ Analyze all TXT reports inside `inputs/`:
 python src\solaris_pm.py inputs
 ```
 
+Analyze the safe sample data:
+
+```powershell
+python src\solaris_pm.py sample_data
+```
+
 ## Output Files
 
 For each input file, the analyzer generates:
@@ -141,6 +150,7 @@ It also generates:
 
 ```text
 outputs/summary.csv
+outputs/index.html
 ```
 
 ## Output Description
@@ -190,9 +200,9 @@ It includes:
 - Possible meaning
 - Recommended action
 
-### HTML Dashboard
+### Per-Server HTML Dashboard
 
-The analyzer generates an HTML dashboard that can be opened directly in a browser.
+The analyzer generates an HTML dashboard for each PM report. It can be opened directly in a browser.
 
 Example:
 
@@ -200,7 +210,7 @@ Example:
 start outputs\sample_solaris_pm_report_dashboard.html
 ```
 
-The dashboard shows:
+The per-server dashboard shows:
 
 - Server summary
 - Overall status
@@ -208,11 +218,43 @@ The dashboard shows:
 - Failed checks
 - Findings evidence
 
+### Multi-Server Index Dashboard
+
+When multiple PM reports are analyzed together, the analyzer also generates a multi-server index dashboard:
+
+```text
+outputs/index.html
+```
+
+Example:
+
+```powershell
+start outputs\index.html
+```
+
+The multi-server dashboard shows:
+
+- Total servers analyzed
+- OK servers
+- Not OK servers
+- Hostname
+- Serial number
+- Model
+- OS version
+- Overall status
+- Failed check count
+- Failed checks
+- Link to each individual server dashboard
+
 ### Summary CSV
 
 The summary CSV gives a high-level overview of all processed servers.
 
 This is useful when multiple PM reports are analyzed together.
+
+```text
+outputs/summary.csv
+```
 
 ## Sample Data
 
@@ -225,10 +267,16 @@ sample_data/sample_solaris_pm_report.txt
 To test using sample data:
 
 ```powershell
-python src\solaris_pm.py sample_data\sample_solaris_pm_report.txt
+python src\solaris_pm.py sample_data
 ```
 
-Then open the generated dashboard:
+Then open the generated multi-server dashboard:
+
+```powershell
+start outputs\index.html
+```
+
+Or open the generated per-server dashboard:
 
 ```powershell
 start outputs\sample_solaris_pm_report_dashboard.html
@@ -254,13 +302,15 @@ Current release milestones:
 
 ```text
 v1.0.0 - Initial Solaris PM collector and analyzer baseline
-v1.1.0 - Added HTML dashboard report
+v1.1.0 - Added per-server HTML dashboard report
+v1.1.1 - README documentation update
+v1.2.0 - Added multi-server HTML index dashboard
 ```
 
 ## Current Version
 
 ```text
-v1.1.0
+v1.2.0
 ```
 
 ## Technologies Used
@@ -277,8 +327,8 @@ v1.1.0
 
 Planned future improvements:
 
-- Multi-server dashboard summary
-- HTML index page for all reports
+- Better multi-server dashboard filtering
+- Dashboard search function
 - PDF export
 - Better rule engine for PM checks
 - Configurable thresholds
@@ -297,7 +347,8 @@ Completed:
 - Markdown checklist
 - JSON findings
 - Explanation report
-- HTML dashboard
+- Per-server HTML dashboard
+- Multi-server HTML index dashboard
 - CSV summary
 - Safe sample data
 - GitHub release tagging
