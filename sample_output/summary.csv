@@ -1,0 +1,2 @@
+File,Hostname,Date,Uptime,Serial Number,Model,Firmware Version,OS Information,Disk Management Status,System Status from Syslog,Filesystem Status,FMA Hardware Status,Services,Hardware Diagnostic,Hard Disk Device Statistics,HBA Port Link Status,Enclosure/Disk Status,Virtualization Check,VM Health Check,Overall Status,Failed Check Count,Failed Checks
+sample_solaris_pm_report.txt,DEMO-SERVER01,28 Aug 2026,12 day(s),DEMO123456,SPARC T4-2,ILOM v8.9.11,Oracle Solaris 11.4.93.221.2,OK,Not OK,OK,OK,OK,OK,OK,OK,OK,LDOM,OK,Not OK,1,System Status from Syslog
