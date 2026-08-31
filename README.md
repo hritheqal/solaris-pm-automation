@@ -34,6 +34,7 @@ Instead of manually checking long command outputs one by one, this tool helps ge
 - Supports one-file or folder-based analysis
 - Uses safe sample input and output for portfolio demonstration
 - Excludes real client/server PM data through `.gitignore`
+- PDF PM checklist report export
 
 ## PM Checks Covered
 
@@ -146,6 +147,7 @@ outputs/<input_filename>_checklist.md
 outputs/<input_filename>_findings.json
 outputs/<input_filename>_explanation.md
 outputs/<input_filename>_dashboard.html
+outputs/<input_filename>_pm_report.pdf
 ```
 
 It also generates:
@@ -307,12 +309,13 @@ v1.0.0 - Initial Solaris PM collector and analyzer baseline
 v1.1.0 - Added per-server HTML dashboard report
 v1.1.1 - README documentation update
 v1.2.0 - Added multi-server HTML index dashboard
+v1.4.0 - Added PDF PM checklist report export
 ```
 
 ## Current Version
 
 ```text
-v1.2.0
+v1.4.0
 ```
 
 ## Technologies Used
