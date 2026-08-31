@@ -24,6 +24,7 @@ def test_sample_report_generates_expected_outputs():
         output_dir / "sample_solaris_pm_report_findings.json",
         output_dir / "sample_solaris_pm_report_explanation.md",
         output_dir / "sample_solaris_pm_report_dashboard.html",
+        output_dir / "sample_solaris_pm_report_pm_report.pdf",
         output_dir / "summary.csv",
         output_dir / "index.html",
     ]
