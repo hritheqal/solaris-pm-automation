@@ -21,3 +21,6 @@ inputs_test/
 .env
 # Local backups
 backups/
+
+# Streamlit local uploads
+web_uploads/
