@@ -1403,12 +1403,12 @@ def generate_index_dashboard(rows):
     return dashboard
 
 
-def write_index_dashboard(rows):
+def write_index_dashboard(rows, output_dir="outputs"):
     if not rows:
         return
 
-    output_dir = Path("outputs")
-    output_dir.mkdir(exist_ok=True)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     index_path = output_dir / "index.html"
     dashboard = generate_index_dashboard(rows)
@@ -1421,12 +1421,12 @@ def write_index_dashboard(rows):
 # CSV summary
 # ============================================================
 
-def write_summary_csv(rows):
+def write_summary_csv(rows, output_dir="outputs"):
     if not rows:
         return
 
-    output_dir = Path("outputs")
-    output_dir.mkdir(exist_ok=True)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     summary_path = output_dir / "summary.csv"
     fieldnames = list(rows[0].keys())
@@ -1486,6 +1486,8 @@ def pdf_status_marks(status):
 
 
 def get_finding_remark(findings, check_name):
+    check_key = normalize_key(check_name)
+
     for finding in findings:
         finding_check = (
             finding.get("check")
@@ -1494,8 +1496,13 @@ def get_finding_remark(findings, check_name):
             or finding.get("title")
             or ""
         )
+        finding_key = normalize_key(str(finding_check))
 
-        if str(finding_check).strip().lower() == check_name.strip().lower():
+        if (
+            finding_key == check_key
+            or check_key in finding_key
+            or finding_key in check_key
+        ):
             evidence = finding.get("evidence") or finding.get("message") or finding.get("output") or ""
             if isinstance(evidence, list):
                 evidence = "; ".join(str(item) for item in evidence[:3])
@@ -1662,7 +1669,7 @@ def generate_pdf_report(row, findings, pdf_path):
     model = get_row_value(row, ["Model"])
     serial = get_row_value(row, ["Serial Number", "Serial"])
     firmware = get_row_value(row, ["Firmware Version", "Firmware"])
-    os_version = get_row_value(row, ["OS Version", "OS"])
+    os_version = get_row_value(row, ["OS Information", "OS Version", "OS"])
     uptime = get_row_value(row, ["Uptime"])
 
     server_info = [
@@ -1728,8 +1735,8 @@ def generate_pdf_report(row, findings, pdf_path):
         },
         {
             "check_name": "Enclosure Status",
-            "status": get_row_value(row, ["Enclosure", "Enclosure Status"]),
-            "remarks": get_finding_remark(findings, "Enclosure"),
+            "status": get_row_value(row, ["Enclosure/Disk Status", "Enclosure", "Enclosure Status"]),
+            "remarks": get_finding_remark(findings, "Enclosure/Disk Status"),
         },
     ]
 
@@ -1790,7 +1797,7 @@ def generate_pdf_report(row, findings, pdf_path):
         {
             "check_name": "Virtualization Type",
             "status": "OK",
-            "remarks": get_row_value(row, ["Virtualization", "Virtualization Type"]),
+            "remarks": get_row_value(row, ["Virtualization Check", "Virtualization", "Virtualization Type"]),
         },
         {
             "check_name": "VM Health Check",
@@ -1838,7 +1845,7 @@ def generate_pdf_report(row, findings, pdf_path):
 # File processing
 # ============================================================
 
-def process_file(input_file):
+def process_file(input_file, output_dir="outputs"):
     text = read_file(input_file)
 
     row = extract_statuses(text, input_file)
@@ -1847,8 +1854,8 @@ def process_file(input_file):
     explanation = generate_explanation_report(row, findings)
     dashboard = generate_html_dashboard(row, findings)
 
-    output_dir = Path("outputs")
-    output_dir.mkdir(exist_ok=True)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     input_name = input_file.stem
 
