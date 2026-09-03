@@ -1,12 +1,21 @@
 # Solaris PM Automation
 
 ![Python Test](https://github.com/hritheqal/solaris-pm-automation/actions/workflows/test.yml/badge.svg)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://solaris-pm-automation-v9s4i3yborzyggpzjihs7z.streamlit.app/)
 
 A Python and Bash-based automation tool for analyzing Solaris / SPARC Preventive Maintenance (PM) reports.
 
 This project uses a Bash collector script to collect read-only Solaris PM command outputs, then analyzes the generated TXT report using Python. The analyzer produces a Markdown checklist, JSON findings evidence, human-readable explanation report, per-server HTML dashboard, multi-server HTML index dashboard, CSV summary, and PDF PM checklist report.
 
 The project also includes a Streamlit web upload interface for browser-based PM report analysis.
+
+## Live Demo
+
+Try the public Streamlit demo:
+
+https://solaris-pm-automation-v9s4i3yborzyggpzjihs7z.streamlit.app/
+
+Use the bundled sample report or sanitized PM output only. Do not upload real customer PM data, server serial numbers, or production logs.
 
 ## Project Purpose
 
